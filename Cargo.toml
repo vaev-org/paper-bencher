@@ -1,0 +1,16 @@
+[package]
+name = "paper-bencher"
+version = "0.1.0"
+edition = "2024"
+description = "Small before/after benchmark orchestrator for paper-muncher"
+license = "LGPL-3.0-only"
+
+[[bin]]
+name = "paper-bencher"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0"
+clap = { version = "4.5", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
