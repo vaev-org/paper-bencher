@@ -2,6 +2,7 @@ mod cli;
 mod compare;
 mod model;
 mod process;
+mod refs;
 mod runner;
 
 use anyhow::Result;
@@ -20,5 +21,7 @@ fn try_main() -> Result<()> {
     match cli.command {
         Command::Run(args) => runner::run(args),
         Command::Compare(args) => compare::compare(args),
+        Command::CompareRefs(args) => refs::compare_refs(args),
+        Command::CompareWorkingTree(args) => refs::compare_working_tree(args),
     }
 }

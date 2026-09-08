@@ -10,6 +10,11 @@ use crate::{
 };
 
 pub fn compare(args: CompareArgs) -> Result<()> {
+    let repo = crate::runner::git_root()?;
+    compare_at(args, &repo)
+}
+
+pub(crate) fn compare_at(args: CompareArgs, repo: &Path) -> Result<()> {
     validate_label(&args.before)?;
     validate_label(&args.after)?;
     ensure!(
@@ -17,16 +22,6 @@ pub fn compare(args: CompareArgs) -> Result<()> {
         "cannot compare a run with itself"
     );
 
-    let git = require_program("git")?;
-    let root = Command::new(git)
-        .args(["rev-parse", "--show-toplevel"])
-        .output()
-        .context("paper-bencher must be run from inside a Git checkout")?;
-    ensure!(
-        root.status.success(),
-        "paper-bencher must be run from inside a Git checkout"
-    );
-    let repo = Path::new(std::str::from_utf8(&root.stdout)?.trim()).to_path_buf();
     let bench_root = repo.join(".bench");
     let before_dir = bench_root.join(&args.before);
     let after_dir = bench_root.join(&args.after);

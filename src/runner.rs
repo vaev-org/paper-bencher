@@ -22,13 +22,17 @@ const GENERATOR: &str = include_str!("../assets/general-ledger.py");
 const STYLESHEET: &str = include_str!("../assets/general-ledger.css");
 
 pub fn run(args: RunArgs) -> Result<()> {
+    let repo = git_root()?;
+    run_at(args, &repo, &repo)
+}
+
+pub(crate) fn run_at(args: RunArgs, repo: &Path, artifact_repo: &Path) -> Result<()> {
     validate_label(&args.label)?;
     ensure!(
         args.ledger_size.is_multiple_of(100),
         "--ledger-size must be a multiple of 100"
     );
-    let repo = git_root()?;
-    let bench_root = repo.join(".bench");
+    let bench_root = artifact_repo.join(".bench");
     let target = bench_root.join(&args.label);
     let selected = selected_tools(&args)?;
 
@@ -59,7 +63,7 @@ pub fn run(args: RunArgs) -> Result<()> {
 
     let result = collect(
         &args,
-        &repo,
+        repo,
         &stage,
         &target,
         &selected,
@@ -405,7 +409,7 @@ fn version(program: &Path, args: &[&str]) -> String {
     }
 }
 
-fn git_root() -> Result<PathBuf> {
+pub(crate) fn git_root() -> Result<PathBuf> {
     let git = require_program("git")?;
     let cwd = std::env::current_dir()?;
     let root = checked_text(

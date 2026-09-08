@@ -73,6 +73,50 @@ paper-bencher run selected --only hyperfine,perf
 enabled. Two runs must use the same profiler selection before they can be
 compared.
 
+## Compare Git revisions directly
+
+Build and compare two branches, tags, commits, or other Git revisions without
+switching the current checkout:
+
+```bash
+paper-bencher compare-refs main feature/remove-flags -s 2000 -r 5
+paper-bencher compare-refs v0.7.0 v0.7.1 --only hyperfine
+```
+
+Paper Bencher creates detached temporary worktrees, runs the benchmarks
+sequentially, stores both runs in the current checkout's `.bench/` directory,
+generates the comparison, and removes the temporary worktrees.
+
+Compare a clean revision with the current working tree, including staged and
+unstaged changes:
+
+```bash
+paper-bencher compare-working-tree HEAD -s 2000
+paper-bencher compare-working-tree main --only hyperfine -r 10
+```
+
+This provides the usual “stashed versus unstashed” comparison without changing
+or stashing the current checkout.
+
+Git comparisons snapshot the current checkout's `.cutekit/externs` into each
+temporary worktree by default. This keeps manually selected Karm branches or
+commits identical across both builds when paper-muncher and Karm change
+together. The copy uses filesystem reflinks when available, so it is normally
+fast and space-efficient. To ignore local externs and let `ck` resolve each
+ref's `project.json`, use:
+
+```bash
+paper-bencher compare-refs main feature --externs fresh
+paper-bencher compare-working-tree HEAD --externs fresh
+```
+
+## Progress display
+
+When attached to a terminal, long generator, build, benchmark, and report
+commands show a rotating indicator on one line. It becomes `✓` on success or
+`✗` on failure. Full command output is still written to the corresponding log
+artifact.
+
 By default, each run executes the equivalent of:
 
 ```bash
