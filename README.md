@@ -18,8 +18,8 @@ cargo install --git <repository-url> paper-bencher
 ```
 
 The runtime dependencies are `python3`, `hyperfine`, `perf`, `heaptrack`,
-`heaptrack_print`, and `git`. The default flow also requires the checkout's
-`./ck` launcher and its build dependencies.
+`heaptrack_print`, `heaptrack_gui`, `setsid`, and `git`. The default flow also
+requires the checkout's `./ck` launcher and its build dependencies.
 
 The general-ledger Python generator and its stylesheet are bundled into the
 binary, so the installed command does not depend on the original `samples/`
@@ -134,6 +134,19 @@ paper-bencher run debug --ledger-size 500 --binary ./path/to/paper-muncher
 Results are kept under `.bench/<label>/`. A run label is never overwritten
 unless `--force` is passed. Comparison reports are written to
 `.bench/compare-<before>-<after>/`.
+
+Every completed run that includes heaptrack automatically opens its profile in
+`heaptrack_gui`. The GUI runs in the background, so `paper-bencher` continues
+or exits without waiting for that window to close. During `compare-refs` and
+`compare-working-tree`, the first run's GUI stays open while the second run is
+collected; the second GUI opens when its run completes. The final comparison
+does not open duplicate windows. A standalone `compare` opens both saved
+profiles because it did not run them itself. Use `--skip heaptrack` or an
+`--only` list without heaptrack when GUI windows are not wanted.
+
+Profiling itself uses `heaptrack --record-only`. Heaptrack therefore never
+opens or waits for a GUI between the first and second run; both windows are
+opened only after all collection and report generation has completed.
 
 Add `.bench/` to the target paper-muncher checkout's Git ignore rules if you do
 not want benchmark artifacts to appear as untracked files. The tool itself

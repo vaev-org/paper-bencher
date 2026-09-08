@@ -11,6 +11,7 @@ use anyhow::{Context, Result, bail, ensure};
 
 use crate::{
     cli::{BenchTool, RunArgs},
+    heaptrack,
     model::Metadata,
     process::{
         capture_to_file, checked_text, direct_command_string, require_program, resolve_program,
@@ -87,6 +88,13 @@ pub(crate) fn run_at(args: RunArgs, repo: &Path, artifact_repo: &Path) -> Result
 
     publish(&stage, &target, args.force)?;
     println!("completed `{}`: {}", args.label, target.display());
+    if selected.contains(&BenchTool::Heaptrack) {
+        let pid = heaptrack::open_profile(&target.join("heaptrack.zst"))?;
+        println!(
+            "heaptrack GUI: opened `{}` (pid {pid}); benchmark continues without waiting",
+            args.label
+        );
+    }
     Ok(())
 }
 
@@ -271,6 +279,9 @@ fn collect(
         println!("[heaptrack] record + report");
         let mut heaptrack_command = Command::new(heaptrack);
         heaptrack_command
+            // Without this, heaptrack opens its analyzer after recording and waits
+            // for that window to close before the next benchmark can start.
+            .arg("--record-only")
             .arg("-o")
             .arg(stage.join("heaptrack"))
             .arg(&binary)

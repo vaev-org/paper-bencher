@@ -1,5 +1,6 @@
 mod cli;
 mod compare;
+mod heaptrack;
 mod model;
 mod process;
 mod refs;

@@ -1,6 +1,6 @@
 [package]
 name = "paper-bencher"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 description = "Small before/after benchmark orchestrator for paper-muncher"
 license = "LGPL-3.0-only"

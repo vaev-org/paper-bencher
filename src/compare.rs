@@ -4,6 +4,7 @@ use anyhow::{Context, Result, bail, ensure};
 
 use crate::{
     cli::CompareArgs,
+    heaptrack,
     model::{HeapSummary, HyperfineExport, HyperfineResult, Metadata},
     process::{capture_to_file, require_program},
     runner::validate_label,
@@ -11,10 +12,10 @@ use crate::{
 
 pub fn compare(args: CompareArgs) -> Result<()> {
     let repo = crate::runner::git_root()?;
-    compare_at(args, &repo)
+    compare_at(args, &repo, true)
 }
 
-pub(crate) fn compare_at(args: CompareArgs, repo: &Path) -> Result<()> {
+pub(crate) fn compare_at(args: CompareArgs, repo: &Path, open_heaptrack: bool) -> Result<()> {
     validate_label(&args.before)?;
     validate_label(&args.after)?;
     ensure!(
@@ -138,6 +139,15 @@ pub(crate) fn compare_at(args: CompareArgs, repo: &Path) -> Result<()> {
         println!(
             "heaptrack diff: {}",
             report.join("heaptrack-diff.txt").display()
+        );
+    }
+    if enabled("heaptrack") && open_heaptrack {
+        let (before_pid, after_pid) = heaptrack::open_profiles(
+            &before_dir.join("heaptrack.zst"),
+            &after_dir.join("heaptrack.zst"),
+        )?;
+        println!(
+            "heaptrack GUI: opened before (pid {before_pid}) and after (pid {after_pid}); not waiting"
         );
     }
     Ok(())

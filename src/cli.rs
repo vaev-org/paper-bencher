@@ -60,12 +60,15 @@ OUTPUT:
   Runs:        .bench/<label>/
   Comparisons: .bench/compare-<before>-<after>/
   Includes metadata, logs, raw profiler data, summary.txt, and summary.md.
+  Every completed heaptrack run automatically opens its GUI in the background.
+  Git comparisons keep the first GUI open while the second run continues and
+  then open the second GUI. Commands never wait for GUI windows to close.
 
 REQUIREMENTS:
   Always: git and python3.
   Default build: the checkout's ./ck and its build dependencies.
-  Profilers: only the enabled commands among hyperfine, perf, heaptrack, and
-  heaptrack_print need to be installed.
+  Profilers: only the enabled commands among hyperfine, perf, heaptrack,
+  heaptrack_print, heaptrack_gui, and setsid need to be installed.
 
 Options belong after the command, for example `paper-bencher run before -s 500`.
 Use `paper-bencher <COMMAND> --help` for command-specific arguments and examples."
@@ -89,7 +92,7 @@ pub enum Command {
 
 #[derive(Debug, Args)]
 #[command(
-    after_long_help = "EXAMPLES:\n  # Build and run all profilers\n  paper-bencher run before\n\n  # Timing only, with custom sample counts\n  paper-bencher run timing -s 2000 -w 2 -r 10 --only hyperfine\n\n  # Skip heap profiling\n  paper-bencher run cpu-and-time --skip heaptrack\n\n  # Use an existing binary instead of running ck package\n  paper-bencher run custom -b /path/to/paper-muncher\n\nEnabled profilers fail the run on error. Partial artifacts remain in a staging directory for diagnosis. Existing labeled runs require --force to replace."
+    after_long_help = "EXAMPLES:\n  # Build and run all profilers\n  paper-bencher run before\n\n  # Timing only, with custom sample counts\n  paper-bencher run timing -s 2000 -w 2 -r 10 --only hyperfine\n\n  # Skip heap profiling\n  paper-bencher run cpu-and-time --skip heaptrack\n\n  # Use an existing binary instead of running ck package\n  paper-bencher run custom -b /path/to/paper-muncher\n\nEnabled profilers fail the run on error. Partial artifacts remain in a staging directory for diagnosis. Existing labeled runs require --force to replace. When heaptrack is enabled, its GUI opens after the run completes and the command does not wait for the window to close."
 )]
 pub struct RunArgs {
     /// Short artifact label, for example `before`, `after`, or a branch name.
@@ -178,7 +181,7 @@ impl PerfCallGraph {
 
 #[derive(Debug, Args)]
 #[command(
-    after_long_help = "EXAMPLE:\n  paper-bencher compare main feature\n\nBoth runs must have matching ledger size and matching enabled-profiler settings."
+    after_long_help = "EXAMPLE:\n  paper-bencher compare main feature\n\nBoth runs must have matching ledger size and matching enabled-profiler settings. When heaptrack data is present, both profiles open automatically in background GUI windows and the command does not wait for them to close."
 )]
 pub struct CompareArgs {
     /// Baseline run label.
@@ -190,7 +193,7 @@ pub struct CompareArgs {
 
 #[derive(Debug, Args)]
 #[command(
-    after_long_help = "EXAMPLES:\n  paper-bencher compare-refs main feature/remove-flags -s 2000 -r 5\n  paper-bencher compare-refs v1.0.0 v1.1.0 --externs fresh\n\nBoth refs are checked out in temporary detached worktrees. By default, the current checkout's .cutekit/externs is copied to both worktrees so coupled Karm changes stay fixed and comparable. Use --externs fresh to resolve each ref's project.json instead. The current checkout is not switched or modified."
+    after_long_help = "EXAMPLES:\n  paper-bencher compare-refs main feature/remove-flags -s 2000 -r 5\n  paper-bencher compare-refs v1.0.0 v1.1.0 --externs fresh\n\nBoth refs are checked out in temporary detached worktrees. By default, the current checkout's .cutekit/externs is copied to both worktrees so coupled Karm changes stay fixed and comparable. Use --externs fresh to resolve each ref's project.json instead. The current checkout is not switched or modified. When heaptrack is enabled, both profiles open automatically in background GUI windows."
 )]
 pub struct CompareRefsArgs {
     /// Baseline branch, tag, commit, or Git revision.
@@ -205,7 +208,7 @@ pub struct CompareRefsArgs {
 
 #[derive(Debug, Args)]
 #[command(
-    after_long_help = "EXAMPLES:\n  paper-bencher compare-working-tree HEAD --only hyperfine -r 10\n  paper-bencher compare-working-tree main --externs fresh\n\nThe baseline ref is built in a temporary detached worktree. The candidate is built from the current checkout, including staged and unstaged tracked changes. By default, local .cutekit/externs is snapshotted into the clean worktree, so both builds use the Karm state you selected manually."
+    after_long_help = "EXAMPLES:\n  paper-bencher compare-working-tree HEAD --only hyperfine -r 10\n  paper-bencher compare-working-tree main --externs fresh\n\nThe baseline ref is built in a temporary detached worktree. The candidate is built from the current checkout, including staged and unstaged tracked changes. By default, local .cutekit/externs is snapshotted into the clean worktree, so both builds use the Karm state you selected manually. When heaptrack is enabled, both profiles open automatically in background GUI windows."
 )]
 pub struct CompareWorkingTreeArgs {
     /// Clean baseline revision (defaults to HEAD).

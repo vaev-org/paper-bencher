@@ -42,6 +42,7 @@ pub fn compare_refs(args: CompareRefsArgs) -> Result<()> {
                 after: after_label,
             },
             &repo,
+            false,
         )
     })();
 
@@ -73,6 +74,7 @@ pub fn compare_working_tree(args: CompareWorkingTreeArgs) -> Result<()> {
                 after: working_label,
             },
             &repo,
+            false,
         )
     })();
 
